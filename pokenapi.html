@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Buscar Pokémon</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div>
+      <div>
+        <h1>Busca tú Pokémon favorito</h1>
+        <input type="text" id="busqueda" placeholder="Nombre del Pokemon" />
+        <button onclick="fetchpokemon()">Buscar</button>
+      </div>
+
+      <div id="Informacion_Pokemon"></div>
+
+      <script>
+        function fetchpokemon() {
+          // Convierte a minúsculas para evitar errores de escritura
+          let nombre_pokemon = document
+            .getElementById("busqueda")
+            .value.trim()
+            .toLowerCase();
+          let url = `https://pokeapi.co/api/v2/pokemon/${nombre_pokemon}`;
+
+          // Si el campo de búsqueda está vacío, muestra un mensaje de error
+          if (nombre_pokemon === "") {
+            document.getElementById("Informacion_Pokemon").innerHTML =
+              "<p style='color: red;'>Por favor ingresa el nombre de Pokémon.</p>";
+            return;
+          }
+
+          fetch(url)
+            .then((res) => {
+              if (res.ok) {
+                return res.json();
+              } else {
+                throw new Error(
+                  "El Pokémon que deseas buscar no existe o está mal escrito, por favor verifícalo e intenta nuevamente."
+                );
+              }
+            })
+            .then((data) => {
+              console.log(data);
+              document.getElementById("Informacion_Pokemon").innerHTML = `
+              <h2>${data.name}</h2>
+              <img src="${data.sprites.front_default}" alt="${data.name}">
+              <p>Altura: ${data.height}</p>
+              <p>Peso: ${data.weight}</p>
+              <p>Tipo: ${data.types.map((type) => type.type.name).join(", ")}</p>
+            `;
+            })
+            .catch((err) => {
+              document.getElementById("Informacion_Pokemon").innerHTML =
+                `<p style="color: red;">${err.message}</p>`;
+              console.error(err);
+            });
+        }
+      </script>
+    </div>
+  </body>
+</html>
