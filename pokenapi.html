@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Buscar Pokémon</title>
     <link rel="stylesheet" href="style.css" />
+    <title>Buscar Pokémon</title>
   </head>
   <body>
     <div>
@@ -23,7 +23,6 @@
             .getElementById("busqueda")
             .value.trim()
             .toLowerCase();
-          let url = `https://pokeapi.co/api/v2/pokemon/${nombre_pokemon}`;
 
           // Si el campo de búsqueda está vacío, muestra un mensaje de error
           if (nombre_pokemon === "") {
@@ -32,25 +31,63 @@
             return;
           }
 
-          fetch(url)
-            .then((res) => {
-              if (res.ok) {
-                return res.json();
-              } else {
+          let urlPokemon = `https://pokeapi.co/api/v2/pokemon/${nombre_pokemon}`;
+          let urlSpecies = `https://pokeapi.co/api/v2/pokemon-species/${nombre_pokemon}`;
+
+          // Peticiones a los endpoins de la API
+          Promise.all([fetch(urlPokemon), fetch(urlSpecies)])
+            .then(([resPokemon, resSpecies]) => {
+              if (!resPokemon.ok || !resSpecies.ok) {
                 throw new Error(
                   "El Pokémon que deseas buscar no existe o está mal escrito, por favor verifícalo e intenta nuevamente."
                 );
               }
+              return Promise.all([resPokemon.json(), resSpecies.json()]);
             })
-            .then((data) => {
-              console.log(data);
+            .then(([data, speciesData]) => {
+              console.log(speciesData);
+
+              // Habilidades
+              const habilidades = data.abilities
+                .map((hab) => hab.ability.name)
+                .join(", ");
+
+              // Se muestran los 5 primeros movimientos
+              const movimientos = data.moves
+                .slice(0, 5)
+                .map((mov) => mov.move.name)
+                .join(", ");
+
+              // Estadisticas base
+              const estadisticas = data.stats
+                .map((stat) => `${stat.stat.name}: ${stat.base_stat}`)
+                .join("<br>");
+
+              // Se muestra gran variedad de información del Pokemon
               document.getElementById("Informacion_Pokemon").innerHTML = `
-              <h2>${data.name}</h2>
-              <img src="${data.sprites.front_default}" alt="${data.name}">
-              <p>Altura: ${data.height}</p>
-              <p>Peso: ${data.weight}</p>
-              <p>Tipo: ${data.types.map((type) => type.type.name).join(", ")}</p>
-            `;
+                <div class="pokemon-card">
+                  <h2>${data.name} N°${data.id}</h2>
+                  <img src="${data.sprites.front_default}" alt="${data.name}">
+                  <p><strong>Altura:</strong> ${data.height}</p>
+                  <p><strong>Peso:</strong> ${data.weight}</p>
+                  <p><strong>Tipo:</strong> ${data.types.map((type) => type.type.name).join(", ")}</p>
+                  <p><strong>Experiencia base:</strong> ${data.base_experience}</p>
+                  <p><strong>Habilidades:</strong> ${habilidades}</p>
+                  <p><strong>Movimientos:</strong> ${movimientos}</p>
+                  <p><strong>Estadísticas base:</strong><br>${estadisticas}</p>
+                  <p><strong>Tasa de captura:</strong> ${speciesData.capture_rate}</p>
+                  <p><strong>Evoluciona de:</strong> ${
+                    speciesData.evolves_from_species
+                      ? speciesData.evolves_from_species.name
+                      : "Este pokemon no evoluciona de ninguno"
+                  }</p>
+                  <p><strong>Hábitat:</strong> ${
+                    speciesData.habitat
+                      ? speciesData.habitat.name
+                      : "Desconocido"
+                  }</p>
+                </div>
+              `;
             })
             .catch((err) => {
               document.getElementById("Informacion_Pokemon").innerHTML =
@@ -58,6 +95,15 @@
               console.error(err);
             });
         }
+
+        //Activar búsqueda con Enter
+        document
+          .getElementById("busqueda")
+          .addEventListener("keypress", function (e) {
+            if (e.key === "Enter") {
+              fetchpokemon();
+            }
+          });
       </script>
     </div>
   </body>

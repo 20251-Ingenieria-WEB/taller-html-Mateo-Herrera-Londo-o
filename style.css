@@ -55,3 +55,17 @@ p[style*="red"] {
   color: red;
   font-weight: bold;
 }
+
+.pokemon-card {
+  padding: 20px;
+  border-radius: 12px;
+  background-color: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: inline-block;
+  width: 280px;
+  transition: transform 0.3s ease;
+}
+
+.pokemon-card:hover {
+  transform: scale(1.03);
+}
